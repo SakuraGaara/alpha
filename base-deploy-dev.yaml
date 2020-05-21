@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: nginx-base-deploy-dev
+  namespace: dev
+  labels:
+    app: base
+    env: "dev"
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector: 
+    matchLabels:
+      app: base
+      env: "dev"
+  template:
+    metadata:
+      name: base-nginx-pod
+      namespace: dev
+      labels:
+        app: base
+        env: "dev"
+    spec:
+      imagePullSecrets:
+      - name: ali-secret
+      containers:
+      - name: base-nginx-container
+        image: registry.cn-hangzhou.aliyuncs.com/sakuragaara/nginx:latest
+        imagePullPolicy: Always
+        volumeMounts:
+          - mountPath: /data/www_dev
+            name: pvc-www-dev
+          - mountPath: /etc/nginx/nginx.conf
+            subPath: nginx.conf
+            name: nginx-etc
+          - mountPath: /etc/nginx/conf.d/base.xxx.conf
+            subPath: base.xxx.conf
+            name: nginx-d-base-etc
+          - name: baselogs
+            mountPath: /var/log/nginx
+            readOnly: false
+        ports:
+        - name: http
+          containerPort: 80
+      volumes:
+      - name: baselogs
+        hostPath:
+          path: /var/log/nginx
+      - name: pvc-www-dev
+        persistentVolumeClaim:
+          claimName: pvc-www-dev
+      - name: nginx-etc
+        configMap:
+          name: nginx-etc
+      - name: nginx-d-base-etc
+        configMap:
+          name: nginx-d-base-etc
+      dnsPolicy: ClusterFirstWithHostNet
