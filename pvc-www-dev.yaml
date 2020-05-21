@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-www-dev
+  namespace: dev
+spec:
+  storageClassName: manual
+  accessModes: ["ReadWriteMany"]
+  resources:
+    requests:
+      storage: 2Gi
+  selector:
+    matchLabels:
+      name: www
+      env: dev
